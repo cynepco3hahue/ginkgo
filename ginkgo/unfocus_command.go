@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 )
 
@@ -32,9 +33,19 @@ func unfocusSpecs([]string, []string) {
 
 func unfocus(component string) {
 	fmt.Printf("Removing F%s...\n", component)
-	cmd := exec.Command("gofmt", fmt.Sprintf("-r=F%s -> %s", component, component), "-w", ".")
-	out, _ := cmd.CombinedOutput()
-	if string(out) != "" {
-		println(string(out))
+	files, err := ioutil.ReadDir(".")
+	if err != nil {
+		println(err.Error())
+		return
+	}
+	for _, f := range files {
+		if f.Name() == "vendor" {
+			continue
+		}
+		cmd := exec.Command("gofmt", fmt.Sprintf("-r=F%s -> %s", component, component), "-w", f.Name())
+		out, _ := cmd.CombinedOutput()
+		if string(out) != "" {
+			println(string(out))
+		}
 	}
 }
